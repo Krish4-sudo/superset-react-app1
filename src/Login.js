@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -8,7 +9,7 @@ function Login({ onLoginSuccess }) {
   const [error, setError] = useState(null);
   
   // Hardcoded Superset URL - update with your actual Superset server URL
-  const supersetUrl = 'http://xxxxxxxxxxxxxx:8088';
+  const supersetUrl = 'http://18.119.121.188:8088';
   const supersetApiUrl = `${supersetUrl}/api/v1/security`;
 
   const handleSubmit = async (e) => {
@@ -31,6 +32,7 @@ function Login({ onLoginSuccess }) {
             "Content-Type": "application/json" 
           }
         }
+       
       );
 
       const accessToken = loginResponse.data.access_token;
@@ -50,9 +52,10 @@ function Login({ onLoginSuccess }) {
       console.log("CSRF Token obtained");
       
       // Pass tokens back to parent component
-      onLoginSuccess(accessToken, csrfToken, supersetUrl);
+      onLoginSuccess(accessToken, csrfToken, supersetUrl, username);
+
       
-    } catch (err) {
+    } catch (err) { 
       console.error("Login error:", err);
       
       // Provide user-friendly error messages
@@ -192,6 +195,8 @@ function Login({ onLoginSuccess }) {
       </div>
     </div>
   );
+  
 }
 
+      
 export default Login;

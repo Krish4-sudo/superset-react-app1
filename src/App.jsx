@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { embedDashboard } from "@superset-ui/embedded-sdk";
 import axios from 'axios';
 import Login from './Login';
+// import { name } from './Login'
 import './App.css';
 
 function App() {
@@ -13,42 +14,70 @@ function App() {
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
   
-  // You can add this to your state if you want to select from multiple dashboards
-  const dashboardId = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
   
+  // You can add this to your state if you want to select from multiple dashboards
+  const dashboardId = "723f3742-80a0-4d23-a7f7-f7a5fe479995";
+ 
+  const [username, setUsername] = useState(null);
   // Handle successful login
-  const handleLoginSuccess = (token, csrf, url) => {
+  const handleLoginSuccess = (token, csrf, url, username) => {
     setAccessToken(token);
     setCsrfToken(csrf);
     setSupersetUrl(url);
+    setUsername(username)
     setIsAuthenticated(true);
     setStatus('Successfully logged in. Loading dashboard...');
     
     // Automatically load the dashboard after login
-    loadDashboard(token, csrf, url);
+    loadDashboard(token, csrf, url, username);
   };
   
-  const loadDashboard = async (token, csrf, url) => {
+  
+  const loadDashboard = async (token, csrf, url, username) => {
     try {
       setStatus('Requesting guest token...');
-
-      // Step 3: Get guest token
-      const guestTokenResponse = await axios.post(
-        `${url}/api/v1/security/guest_token/`,
-        {
+      
+      // Create different request bodies based on username
+      let requestBody;
+      
+      if (username === "jagan") {
+        // Admin user - no RLS applied
+        requestBody = {
           resources: [
             {
               type: "dashboard",
               id: dashboardId
             }
           ],
+          // Empty RLS array for admin user
           rls: [],
           user: {
-            username: "guest_user",
+            username: username,
+            first_name: "Admin",
+            last_name: "User"
+          }
+        };
+      } else {
+        // Regular users - apply RLS
+        requestBody = {
+          resources: [
+            {
+              type: "dashboard",
+              id: dashboardId
+            }
+          ],
+          rls: [{"clause": `customer_id = (select customer_id from customer_users where users='${username}')`}],
+          user: {
+            username: username,
             first_name: "Guest",
             last_name: "User"
           }
-        },
+        };
+      }
+
+      const guestTokenResponse = await axios.post(
+        `${url}/api/v1/security/guest_token/`,
+        requestBody,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,7 +87,7 @@ function App() {
           }
         }
       );
-
+  
       const guestToken = guestTokenResponse.data.token;
       console.log("Guest token obtained");
       setStatus('Embedding dashboard...');
