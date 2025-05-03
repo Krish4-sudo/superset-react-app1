@@ -9,7 +9,7 @@ function Login({ onLoginSuccess }) {
   const [error, setError] = useState(null);
   
   // Hardcoded Superset URL - update with your actual Superset server URL
-  const supersetUrl = 'http://18.119.121.188:8088';
+  const supersetUrl = 'http://xx.119.xxx.188:8088';
   const supersetApiUrl = `${supersetUrl}/api/v1/security`;
 
   const handleSubmit = async (e) => {
